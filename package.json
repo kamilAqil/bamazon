@@ -1,0 +1,23 @@
+{
+  "name": "bamazonfolder",
+  "version": "1.0.0",
+  "description": "test app to manage an online store inventory ",
+  "main": "./bamazonSoftwares/bamazonCustomer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/supahslacker/bamazon.git"
+  },
+  "author": "supahslacker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/supahslacker/bamazon/issues"
+  },
+  "homepage": "https://github.com/supahslacker/bamazon#readme",
+  "dependencies": {
+    "inquirer": "^3.1.0",
+    "mysql": "^2.13.0"
+  }
+}
