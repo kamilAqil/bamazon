@@ -13,7 +13,9 @@ var connection = mysql.createConnection({
 
 //start connection to mysql database
 connection.connect();
+
 dropDownOptions();
+//addProductToTable();
 
 //queryProductsTable();
 //viewLowInventory();
@@ -119,7 +121,7 @@ function addToInventory(){
 function dropDownOptions(){
     inquire.prompt([{
         type:'list',
-        choices:['View Products','View Low Inventory','Update Inventory'],
+        choices:['View Products','View Low Inventory','Update Inventory','Add Product'],
         message:"Please pick from the following",
         name:'dropDownQuestion'
     }]).then(function(answers){
@@ -135,6 +137,9 @@ function dropDownOptions(){
             break;
             case 'Update Inventory':
             addToInventory();
+            break;
+            case 'Add Product':
+            addProductToTable();
             break;
             default:
             console.log('something went wrong');
@@ -160,5 +165,100 @@ function resultsToTable(results){
                 
             }
          console.log(table.toString());
+}
+
+function addProductToTable(){
+    var queryToGenerateListOfDepartments = new Promise(function(resolve,reject){
+        var departmentList = [];
+        //query the departments and return the array of departments
+        connection.query('SELECT department_name FROM products',function(err,data){
+            if(err){
+                resolve(err);
+            }
+            //console.log(data);
+            //loop through data array and get object[department_name]
+            //and push it to the departmentList array then return 
+            //department list array at the end of the function 
+            for(i=0;i<data.length;i++){
+                // console.log(data[i]['department_name']);
+                // console.log(departmentList.indexOf(data[i]['department_name']));
+                if(departmentList.indexOf(data[i]['department_name'])<0){
+                    departmentList.push(data[i]['department_name']);
+                }
+                
+            }
+            resolve(departmentList);
+        });
+        departmentList = [];
+    });
+    
+    // Everything will happen once the array of departments is added 
+    // beacuse before we add a specific product we will have the manager
+    // select a department from a dropdown list in the inquire dropdown prompt
+    queryToGenerateListOfDepartments.then(function(arrayOfDepartments){
+      inquire.prompt([{
+          type:'list', 
+          name:'q1', 
+          message:'Please select the department in which you would like to create a product',
+          'choices':arrayOfDepartments
+      },
+      {
+          type:'input',
+          message:'What is the name of the Product?',
+          name:'q2'
+      },
+      {
+          type:'input',
+          message:'What is the Price?',
+          name:'q3'
+        },
+      {
+          type:'input',
+          message:'How many in stock?',
+           name:'q4',
+      }]).then(function(ans){
+        //console.log(ans);
+        ans.q3 = parseInt(ans.q3);
+        ans.q4 = parseInt(ans.q4);
+        var productToAdd ={
+            department:ans.q1.toString(),
+            name:ans.q2.toString(),
+            price:parseInt(ans.q3),
+            stock:parseInt(ans.q4)
+        };
+        // console.log(typeof productToAdd.name);
+        // console.log(typeof productToAdd.department);
+        // console.log(typeof (productToAdd.price));
+        // console.log(typeof productToAdd.stock);
+            inquire.prompt([{
+                type:'confirm',
+                message:'Would you like to add '+productToAdd.name+" ?",
+                name:'confirm'
+            }]).then(function(answer){
+                // console.log(answer.confirm == true);
+                if(answer.confirm){
+                    //add product to database
+                    connection.query("INSERT into products SET ?",{product_name:productToAdd.name,department_name:productToAdd.department,price:productToAdd.price,stock_quantity:productToAdd.stock},function(err,results){
+                                                                        if(err){
+                                                                            throw err
+                                                                            //console.log(err);
+                                                                        }else{
+                                                                            console.log('Success!');
+                                                                        }
+                                                                        
+
+                    });
+                }else{
+                    console.log('Thank you come again');
+                }
+                connection.end();
+            });
+      });
+
+        //End the connection to the database
+        
+        arrayOfDepartments = [];
+    });
+    
 }
 
